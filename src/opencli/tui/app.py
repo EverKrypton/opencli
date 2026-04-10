@@ -74,15 +74,21 @@ class ChatArea(Widget):
             content = msg.get("content", "")
             
             if role == "user":
-                output.append("\n● You\n", style="bold green")
-                output.append(f"{content}\n")
+                output.append("\n", style="")
+                output.append("  You\n", style="bold #22c55e")
+                output.append("  ", style="dim")
+                output.append(f"{content}\n", style="white")
+                output.append("\n")
             elif role == "assistant":
-                output.append("\n● AI\n", style="bold cyan")
-                output.append(f"{content}\n")
+                output.append("\n", style="")
+                output.append("  AI\n", style="bold #06b6d4")
+                output.append("  ", style="dim")
+                output.append(f"{content}\n", style="white")
+                output.append("\n")
             elif role == "system":
-                output.append(f"\n{content}\n", style="dim")
+                output.append(f"{content}\n", style="#64748b")
             elif role == "tool":
-                output.append(f"\n  └─ {content[:200]}\n", style="dim yellow")
+                output.append(f"\n  └─ {content[:200]}\n", style="#eab308")
         
         return output
     
@@ -102,13 +108,19 @@ class InputBox(Widget):
     InputBox {
         dock: bottom;
         height: 3;
-        background: $surface-darken-1;
-        border-top: solid $primary;
-        padding: 0 1;
+        background: $surface;
+        border-top: solid $border;
+        padding: 0 2;
     }
     
     InputBox Input {
-        background: $surface;
+        background: $surface-darken-1;
+        border: none;
+        padding: 0 1;
+    }
+    
+    InputBox Input:focus {
+        border: none;
     }
     """
     
@@ -235,9 +247,9 @@ class StatusBar(Widget):
     DEFAULT_CSS = """
     StatusBar {
         height: 1;
-        background: $primary;
-        color: white;
-        padding: 0 1;
+        background: $surface;
+        color: $text;
+        padding: 0 2;
     }
     """
     
@@ -248,17 +260,22 @@ class StatusBar(Widget):
     logged_in = reactive(False)
     
     def render(self) -> Text:
-        if self.logged_in:
-            left = f" {self.provider} | {self.model}"
-        else:
-            left = " not configured | /login to start"
-        
-        right = f"${self.cost:.4f} "
-        
         text = Text()
-        text.append(left, style="bold white")
-        text.append(" " * max(1, 60 - len(left) - len(right)))
-        text.append(right, style="white")
+        
+        if self.logged_in:
+            text.append(" ○ ", style="#22c55e")
+            text.append(f"{self.provider}", style="bold #6366f1")
+            text.append(" · ", style="#4b5563")
+            text.append(self.model, style="#9ca3af")
+        else:
+            text.append(" ○ ", style="#6b7280")
+            text.append("/login to start", style="#6b7280")
+        
+        text.append("  ", style="")
+        
+        if self.cost > 0:
+            text.append(f"${self.cost:.4f}", style="#fbbf24")
+        
         return text
 
 
@@ -337,34 +354,35 @@ class MainScreen(Screen):
         self.status.logged_in = True
     
     def _show_banner(self):
-        logged = "✓ logged in" if self.status.logged_in else "✗ /login to start"
+        logged_icon = "●" if self.status.logged_in else "○"
+        logged_text = f"{self.provider} · {self.model}" if self.status.logged_in else "/login to start"
         
-        self.chat.add("system", f"""
-╔══════════════════════════════════════════════════════════════╗
-║                                                              ║
-║    ██████╗ ██████╗ ██╗███╗   ██╗███╗   ██╗███████╗██████╗   ║
-║   ██╔═══██╗██╔══██╗██║████╗  ██║████╗  ██║██╔════╝██╔══██╗  ║
-║   ██║   ██║██████╔╝██║██╔██╗ ██║██╔██╗ ██║█████╗  ██████╔╝  ║
-║   ██║   ██║██╔══██╗██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗  ║
-║   ╚██████╔╝██║  ██║██║██║ ╚████║██║ ╚████║███████╗██║  ██║  ║
-║    ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝  ║
-║                                                              ║
-║            AI-powered CLI agent for Terminal                 ║
-╚══════════════════════════════════════════════════════════════╝
-
-  Status: {logged}
+        banner = f"""
   
-  Commands:
-    /login [key]    Configure API key
-    /logout         Clear saved key
-    /models         List available models  
-    /model <name>   Switch model
-    /clear          Clear conversation
-    /new            New session
-    /settings       Show settings
-    /help           Show all commands
-    /exit           Quit
-        """)
+  ┌─────────────────────────────────────────────────────────────┐
+  │                                                             │
+  │     ██████╗ ██████╗ ██╗███╗   ██╗███╗   ██╗███████╗        │
+  │    ██╔═══██╗██╔══██╗██║████╗  ██║████╗  ██║██╔════╝        │
+  │    ██║   ██║██████╔╝██║██╔██╗ ██║██╔██╗ ██║█████╗          │
+  │    ██║   ██║██╔══██╗██║██║╚██╗██║██║╚██╗██║██╔══╝          │
+  │    ╚██████╔╝██║  ██║██║██║ ╚████║██║ ╚████║███████╗        │
+  │     ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝        │
+  │                                                             │
+  │            AI-powered CLI agent for Terminal                │
+  └─────────────────────────────────────────────────────────────┘
+  
+     {logged_icon} {logged_text}
+  
+   ─────────────────────────────────────────────────────────────
+  
+    /login [key]     Configure API key
+    /models          List models  ·  /model <name>  Switch model
+    /clear           Clear chat   ·  /new           New session
+    /help            Show all commands
+    /exit            Quit
+  
+"""
+        self.chat.add("system", banner)
     
     async def _ask_permission(self, action: str, resource: str) -> bool:
         return True
@@ -578,12 +596,20 @@ class OpenCLIApp(App):
     }
     
     Header {
-        background: $primary;
-        color: white;
+        background: $surface;
+        color: $primary;
+        text-style: bold;
     }
     
     Footer {
-        background: $surface-darken-1;
+        background: $surface;
+        color: $text;
+    }
+    
+    .title {
+        text-align: center;
+        text-style: bold;
+        color: $primary;
     }
     """
     
@@ -599,10 +625,12 @@ class OpenCLIApp(App):
     
     def get_css_variables(self):
         return {
-            "primary": "#2563eb",
+            "primary": "#6366f1",
             "accent": "#f97316",
-            "surface": "#0f172a",
-            "text": "#f8fafc",
+            "surface": "#0c0c0c",
+            "surface-darken-1": "#1a1a1a",
+            "border": "#333333",
+            "text": "#e5e5e5",
         }
 
 
