@@ -176,15 +176,34 @@ class ModelSelectDialog(ModalScreen):
     }
     
     ModelSelectDialog > Container {
-        width: 60;
-        height: 20;
+        width: 70;
+        height: 25;
         border: thick $primary;
         background: $surface;
         padding: 1;
     }
+    
+    ModelSelectDialog .title {
+        text-align: center;
+        text-style: bold;
+        color: $primary;
+        margin-bottom: 1;
+    }
+    
+    ModelSelectDialog .model-item {
+        padding: 0 1;
+    }
+    
+    ModelSelectDialog .selected {
+        background: $primary;
+        color: white;
+    }
     """
     
     BINDINGS = [
+        Binding("up", "up", "Up"),
+        Binding("down", "down", "Down"),
+        Binding("enter", "select", "Select"),
         Binding("escape", "cancel", "Cancel"),
     ]
     
@@ -193,23 +212,67 @@ class ModelSelectDialog(ModalScreen):
         self.models = models
         self.current = current
         self.result: Optional[str] = None
+        self.selected_index = 0
+        
+        if current in models:
+            self.selected_index = models.index(current)
     
     def compose(self) -> ComposeResult:
         with Container():
             yield Static("Select Model", classes="title")
-            for model in self.models[:15]:
-                marker = "→ " if model == self.current else "  "
-                yield Static(f"{marker}{model}")
             yield Static("")
-            yield Input(placeholder="Type model name and press Enter", id="model_input")
+            yield Static("  Use ↑↓ to navigate, Enter to select", classes="hint")
+            yield Static("")
+            yield Static(self._render_models(), id="model_list")
+            yield Static("")
+            yield Static("  Or type to search:", classes="hint")
+            yield Input(placeholder="Type model name...", id="model_input")
+    
+    def _render_models(self) -> str:
+        lines = []
+        start = max(0, self.selected_index - 5)
+        end = min(len(self.models), start + 12)
+        
+        for i in range(start, end):
+            model = self.models[i]
+            if i == self.selected_index:
+                lines.append(f"  ▸ {model}")
+            else:
+                lines.append(f"    {model}")
+        
+        return "\n".join(lines)
     
     def on_mount(self):
         self.query_one(Input).focus()
     
+    def action_up(self):
+        if self.selected_index > 0:
+            self.selected_index -= 1
+            self._update_list()
+    
+    def action_down(self):
+        if self.selected_index < len(self.models) - 1:
+            self.selected_index += 1
+            self._update_list()
+    
+    def action_select(self):
+        self.result = self.models[self.selected_index]
+        self.dismiss(self.result)
+    
+    def _update_list(self):
+        model_list = self.query_one("#model_list", Static)
+        model_list.update(self._render_models())
+    
     def on_input_submitted(self, event: Input.Submitted):
-        if event.value.strip():
-            self.result = event.value.strip()
-            self.dismiss(self.result)
+        text = event.value.strip()
+        if text:
+            for i, m in enumerate(self.models):
+                if text.lower() in m.lower():
+                    self.result = m
+                    self.dismiss(m)
+                    return
+            self.result = text
+            self.dismiss(text)
     
     def action_cancel(self):
         self.dismiss(None)
@@ -292,11 +355,20 @@ class MainScreen(Screen):
             os.environ.get("OPENAI_API_KEY")
         )
         
-        if not api_key:
+        base_url = self.config.ai.base_url or os.environ.get("OPENCLI_BASE_URL")
+        provider = os.environ.get("OPENCLI_PROVIDER", "")
+        
+        if not api_key and not provider:
             self.status.logged_in = False
             return
         
-        provider = detect_provider(api_key)
+        if api_key == "ollama" or provider == "ollama":
+            provider = "ollama"
+        elif api_key:
+            provider = provider or detect_provider(api_key)
+        else:
+            self.status.logged_in = False
+            return
         
         self.permission_manager.set_ask_callback(self._ask_permission)
         
@@ -306,10 +378,10 @@ class MainScreen(Screen):
         )
         
         self.ai_client = AIClient(
-            api_key=api_key,
+            api_key=api_key if api_key != "ollama" else "ollama",
             provider=provider,
             model=self.config.ai.model,
-            base_url=self.config.ai.base_url,
+            base_url=base_url,
             tools=self.tools,
             session_manager=self.session_manager,
             permission_handler=self._check_permission,
@@ -396,6 +468,8 @@ class MainScreen(Screen):
         
         if cmd in ("/login",):
             await self._cmd_login(args)
+        elif cmd == "/ollama":
+            await self._cmd_ollama(args)
         elif cmd == "/logout":
             await self._cmd_logout()
         elif cmd in ("/models",):
@@ -414,6 +488,47 @@ class MainScreen(Screen):
             self.app.exit()
         else:
             self.chat.add("system", f"Unknown command: {cmd}\nType /help for available commands.")
+    
+    async def _cmd_ollama(self, args: List[str]):
+        """Connect to Ollama (local models, no API key needed)."""
+        import httpx
+        
+        ollama_url = args[0] if args else "http://localhost:11434"
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{ollama_url}/api/tags", timeout=5.0)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    models = [m["name"] for m in data.get("models", [])]
+                    
+                    if not models:
+                        self.chat.add("system", "Ollama is running but no models found.\n\nInstall a model with:\n  ollama pull llama3.2")
+                        return
+                    
+                    self.config.ai.api_key = "ollama"
+                    self.config.ai.base_url = f"{ollama_url}/v1"
+                    self.config.ai.model = models[0]
+                    self.config.save()
+                    
+                    await self._setup_client()
+                    self.status.provider = "ollama"
+                    self.status.logged_in = True
+                    
+                    model_list = "\n".join(f"  • {m}" for m in models)
+                    self.chat.add("system", f"""✓ Connected to Ollama!
+
+  URL: {ollama_url}
+  
+  Available models:
+{model_list}
+
+  Use /model to switch models.
+""")
+                else:
+                    self.chat.add("system", f"Could not connect to Ollama at {ollama_url}\n\nMake sure Ollama is running:\n  ollama serve")
+        except Exception as e:
+            self.chat.add("system", f"Could not connect to Ollama at {ollama_url}\n\nError: {str(e)}\n\nMake sure Ollama is running:\n  ollama serve")
     
     async def _cmd_login(self, args: List[str]):
         if args:
@@ -459,23 +574,29 @@ class MainScreen(Screen):
         
         try:
             models = await fetch_models(self.ai_client.provider_name, self.ai_client.api_key)
-        except:
+        except Exception as e:
             models = self.ai_client.provider_config.models
         
-        model_list = "\n".join(f"  • {m}" for m in models[:20])
-        self.chat.add("system", f"Available models:\n{model_list}\n\nUse /model <name> to switch.")
+        model_list = "\n".join(f"  • {m}" for m in models[:25])
+        current = f"\n\n  Current: {self.ai_client.model}" if self.ai_client else ""
+        self.chat.add("system", f"Available models:\n{model_list}{current}\n\nUse /model to select or press Enter for dropdown.")
     
     async def _cmd_set_model(self, args: List[str]):
         if not self.ai_client:
             self.chat.add("system", "Please login first: /login")
             return
         
+        try:
+            models = await fetch_models(self.ai_client.provider_name, self.ai_client.api_key)
+        except:
+            models = self.ai_client.provider_config.models
+        
         if args:
             model = args[0]
         else:
             model = await self.app.push_screen_wait(
                 ModelSelectDialog(
-                    self.ai_client.provider_config.models,
+                    models,
                     self.ai_client.model
                 )
             )
@@ -485,7 +606,7 @@ class MainScreen(Screen):
             self.config.ai.model = model
             self.config.save()
             self.status.model = model
-            self.chat.add("system", f"Model changed to: {model}")
+            self.chat.add("system", f"✓ Model changed to: {model}")
     
     def _cmd_new(self):
         if self.ai_client:
@@ -512,9 +633,10 @@ Config file: ~/.opencli/config.json
         self.chat.add("system", """
 Commands:
   /login [key]     Login with API key (auto-detects provider)
+  /ollama [url]    Connect to Ollama (local models, no key needed)
   /logout          Clear saved credentials
   /models          List available models
-  /model <name>    Switch to a different model
+  /model           Select model (dropdown)
   /clear           Clear conversation history
   /new             Start a new session
   /settings        Show current settings
@@ -532,12 +654,16 @@ Supported Providers:
   • Anthropic      (sk-ant-...)
   • Groq           (gsk_...)
   • Google         (AIza...)
-  • Ollama         (local, no key needed)
+  • Ollama         (local, use /ollama to connect)
         """)
     
     async def _send_message(self, message: str):
-        if not self.ai_client or not self.ai_client.api_key:
-            self.chat.add("system", "Please login first: /login")
+        if not self.ai_client:
+            self.chat.add("system", "Please login first: /login or /ollama")
+            return
+        
+        if not self.ai_client.api_key and self.ai_client.provider_name != "ollama":
+            self.chat.add("system", "Please login first: /login or /ollama")
             return
         
         self.chat.add("user", message)
