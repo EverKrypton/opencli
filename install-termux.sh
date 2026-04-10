@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# OPENCLI Installer - Works on Termux, Linux, macOS
+# ORINNE Installer - Works on Termux, Linux, macOS
 # No native compilation required - pure Python
 
 set -e
 
 echo ""
 echo "  ╔═════════════════════════════════════════╗"
-echo "  ║         OPENCLI Installer               ║"
-echo "  ║   AI-powered TUI editor for Termux      ║"
+echo "  ║         ORINNE Installer               ║"
+echo "  ║   AI-powered TUI agent for Termux      ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo ""
 
@@ -54,46 +54,46 @@ echo "  [2/4] Upgrading pip..."
 $PYTHON_CMD -m pip install --upgrade pip --quiet 2>/dev/null || true
 echo "  ✓ pip upgraded"
 
-# Install OPENCLI
+# Install ORINNE
 echo ""
-echo "  [3/4] Installing OPENCLI..."
+echo "  [3/4] Installing ORINNE..."
 
 # Clone if not in project directory
-INSTALL_DIR="$HOME/.opencli-src"
-if [ ! -f "pyproject.toml" ] || [ ! -d "src/opencli" ]; then
-    echo "  Downloading OPENCLI..."
+INSTALL_DIR="$HOME/.orinne-src"
+if [ ! -f "pyproject.toml" ] || [ ! -d "src/orinne" ]; then
+    echo "  Downloading ORINNE..."
     rm -rf "$INSTALL_DIR"
-    git clone https://github.com/EverKrypton/opencli.git "$INSTALL_DIR" --depth 1
+    git clone https://github.com/EverKrypton/orinne.git "$INSTALL_DIR" --depth 1
     cd "$INSTALL_DIR"
 fi
 
 # Install dependencies (pure Python, no compilation)
 echo "  Installing dependencies..."
-$PYTHON_CMD -m pip install textual httpx pygments rich python-dotenv --quiet
+$PYTHON_CMD -m pip install textual httpx pygments rich python-dotenv beautifulsoup4 --quiet
 
-# Install opencli in user space
-echo "  Installing OPENCLI..."
+# Install orinne in user space
+echo "  Installing ORINNE..."
 $PYTHON_CMD -m pip install --user . --quiet 2>/dev/null || {
     # Fallback: create a simple wrapper script
     BIN_DIR="$HOME/.local/bin"
     mkdir -p "$BIN_DIR"
     
-    cat > "$BIN_DIR/opencli" << 'WRAPPER'
+    cat > "$BIN_DIR/orinne" << 'WRAPPER'
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-export PYTHONPATH="$SCRIPT_DIR/.opencli-src/src"
-exec python3 -m opencli "$@"
+export PYTHONPATH="$SCRIPT_DIR/.orinne-src/src"
+exec python3 -m orinne "$@"
 WRAPPER
-    chmod +x "$BIN_DIR/opencli"
+    chmod +x "$BIN_DIR/orinne"
     echo "  ✓ Installed via wrapper script"
 }
 
-echo "  ✓ OPENCLI installed"
+echo "  ✓ ORINNE installed"
 
 # Create config directory
 echo ""
 echo "  [4/4] Setting up configuration..."
-CONFIG_DIR="$HOME/.opencli"
+CONFIG_DIR="$HOME/.orinne"
 mkdir -p "$CONFIG_DIR"
 
 if [ ! -f "$CONFIG_DIR/config.json" ]; then
@@ -131,9 +131,9 @@ elif [ -f "$HOME/.zshrc" ]; then
 fi
 
 if [ -n "$SHELL_RC" ]; then
-    if ! grep -q 'opencli' "$SHELL_RC" 2>/dev/null; then
+    if ! grep -q 'orinne' "$SHELL_RC" 2>/dev/null; then
         echo "" >> "$SHELL_RC"
-        echo "# OPENCLI" >> "$SHELL_RC"
+        echo "# ORINNE" >> "$SHELL_RC"
         echo "export PATH=\"\$HOME/.local/bin:\$PATH\"" >> "$SHELL_RC"
     fi
 fi
@@ -145,13 +145,13 @@ echo "  ╚═══════════════════════
 echo ""
 echo "  Configure your AI API key:"
 echo ""
-echo "    export OPENCLI_API_KEY='your-key-here'"
+echo "    export ORINNE_API_KEY='your-key-here'"
 echo ""
-echo "  Or edit: ~/.opencli/config.json"
+echo "  Or edit: ~/.orinne/config.json"
 echo ""
-echo "  Run OPENCLI:"
+echo "  Run ORINNE:"
 echo ""
-echo "    opencli"
+echo "    orinne"
 echo ""
 if [ -n "$SHELL_RC" ]; then
     echo "  (Restart your shell or run: source $SHELL_RC)"

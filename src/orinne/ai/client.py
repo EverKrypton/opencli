@@ -6,12 +6,12 @@ from typing import Dict, List, Optional, Any, AsyncIterator, Callable
 from dataclasses import dataclass
 import httpx
 
-from opencli.providers import (
+from orinne.providers import (
     Provider, ProviderConfig, detect_provider, get_provider_config,
     get_pricing, PricingInfo
 )
-from opencli.tools import ToolsRegistry, ToolResult
-from opencli.session import Session, SessionManager, Message
+from orinne.tools import ToolsRegistry, ToolResult
+from orinne.session import Session, SessionManager, Message
 
 
 @dataclass

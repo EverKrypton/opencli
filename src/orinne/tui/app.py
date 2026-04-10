@@ -1,4 +1,4 @@
-"""Main TUI application for OPENCLI - Inspired by opencode."""
+"""Main TUI application for ORINNE."""
 
 import os
 import asyncio
@@ -14,43 +14,15 @@ from rich.text import Text
 from rich.console import Console
 from rich.panel import Panel
 
-from opencli.utils.config import Config
-from opencli.utils.permissions import PermissionManager, is_dangerous_command, is_sensitive_path
-from opencli.tools import ToolsRegistry
-from opencli.providers import detect_provider, get_provider_config, fetch_models, PROVIDERS
-from opencli.session import SessionManager
-from opencli.ai.client import AIClient
+from orinne.utils.config import Config
+from orinne.utils.permissions import PermissionManager, is_dangerous_command, is_sensitive_path
+from orinne.tools import ToolsRegistry
+from orinne.providers import detect_provider, get_provider_config, fetch_models, PROVIDERS
+from orinne.session import SessionManager
+from orinne.ai.client import AIClient
 
 
 console = Console()
-
-
-class ChatMessage(Widget):
-    DEFAULT_CSS = """
-    ChatMessage {
-        margin: 0 1;
-        padding: 0;
-    }
-    """
-    
-    content = reactive("")
-    role = reactive("user")
-    
-    def __init__(self, content: str = "", role: str = "user", **kwargs):
-        super().__init__(**kwargs)
-        self.content = content
-        self.role = role
-    
-    def render(self) -> Text:
-        if self.role == "user":
-            return Text(f"\n[You]\n{self.content}", style="bold green")
-        elif self.role == "assistant":
-            return Text(f"\n[AI]\n{self.content}", style="cyan")
-        elif self.role == "system":
-            return Text(f"\n{self.content}", style="dim yellow")
-        elif self.role == "tool":
-            return Text(f"\n[Tool]\n{self.content[:500]}", style="yellow")
-        return Text(self.content)
 
 
 class ChatArea(Widget):
@@ -172,7 +144,7 @@ class LoginDialog(ModalScreen):
     
     def compose(self) -> ComposeResult:
         with Container():
-            yield Static("🔐 Login to OPENCLI", classes="title")
+            yield Static("🔐 Login to ORINNE", classes="title")
             yield Static("")
             yield Static("Paste your API key below.")
             yield Static("Provider will be auto-detected:")
@@ -316,7 +288,7 @@ class MainScreen(Screen):
     async def _setup_client(self):
         api_key = (
             self.config.ai.api_key or
-            os.environ.get("OPENCLI_API_KEY") or
+            os.environ.get("ORINNE_API_KEY") or
             os.environ.get("OPENAI_API_KEY")
         )
         
@@ -355,20 +327,22 @@ class MainScreen(Screen):
     
     def _show_banner(self):
         logged_icon = "●" if self.status.logged_in else "○"
-        logged_text = f"{self.provider} · {self.model}" if self.status.logged_in else "/login to start"
+        provider = getattr(self, 'ai_client', None) and self.ai_client.provider_name or ""
+        model = getattr(self, 'ai_client', None) and self.ai_client.model or ""
+        logged_text = f"{provider} · {model}" if self.status.logged_in else "/login to start"
         
         banner = f"""
   
   ┌─────────────────────────────────────────────────────────────┐
   │                                                             │
-  │     ██████╗ ██████╗ ██╗███╗   ██╗███╗   ██╗███████╗        │
-  │    ██╔═══██╗██╔══██╗██║████╗  ██║████╗  ██║██╔════╝        │
-  │    ██║   ██║██████╔╝██║██╔██╗ ██║██╔██╗ ██║█████╗          │
-  │    ██║   ██║██╔══██╗██║██║╚██╗██║██║╚██╗██║██╔══╝          │
-  │    ╚██████╔╝██║  ██║██║██║ ╚████║██║ ╚████║███████╗        │
-  │     ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝        │
+  │     ██████╗ ██████╗ ██╗██████╗ ██████╗ ██████╗ ██╗███╗   ██╗│
+  │     ██╔═══██╗██╔══██╗██║██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║│
+  │     ██║   ██║██████╔╝██║██║  ██║██████╔╝██████╔╝██║██╔██╗ ██║│
+  │     ██║   ██║██╔═══╝ ██║██║  ██║██╔═══╝ ██╔═══╝ ██║██║╚██╗██║│
+  │     ╚██████╔╝██║     ██║██████╔╝██║     ██║     ██║██║ ╚████║│
+  │      ╚═════╝ ╚═╝     ╚═╝╚═════╝ ╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝│
   │                                                             │
-  │            AI-powered CLI agent for Terminal                │
+  │           AI-powered CLI agent for Terminal                 │
   └─────────────────────────────────────────────────────────────┘
   
      {logged_icon} {logged_text}
@@ -527,7 +501,7 @@ Settings:
   Temperature: {self.config.ai.temperature}
   Max Tokens:  {self.config.ai.max_tokens}
   
-Config file: ~/.opencli/config.json
+Config file: ~/.orinne/config.json
         """
         self.chat.add("system", settings)
     
@@ -542,7 +516,7 @@ Commands:
   /new             Start a new session
   /settings        Show current settings
   /help            Show this help
-  /exit            Quit OPENCLI
+  /exit            Quit ORINNE
 
 Keyboard Shortcuts:
   Ctrl+L           Clear screen
@@ -585,7 +559,7 @@ Supported Providers:
         self._cmd_new()
 
 
-class OpenCLIApp(App):
+class OrinneApp(App):
     CSS = """
     Screen {
         background: $surface;
@@ -635,7 +609,7 @@ class OpenCLIApp(App):
 
 
 def main():
-    app = OpenCLIApp()
+    app = OrinneApp()
     app.run()
 
 

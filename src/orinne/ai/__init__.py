@@ -1,4 +1,4 @@
-"""AI module for OPENCLI."""
+"""AI module for ORINNE."""
 
 from .client import AIClient, StreamChunk
 
