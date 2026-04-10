@@ -1,12 +1,12 @@
 """OPENCLI entry point."""
 
 import sys
-from opencli.tui.app import OrinneApp
+from opencli.tui.app import OpenCLIApp
 
 
 def main():
     """Main entry point for OPENCLI."""
-    app = OrinneApp()
+    app = OpenCLIApp()
     try:
         app.run()
     except KeyboardInterrupt:

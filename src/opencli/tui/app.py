@@ -559,7 +559,7 @@ Supported Providers:
         self._cmd_new()
 
 
-class OrinneApp(App):
+class OpenCLIApp(App):
     CSS = """
     Screen {
         background: $surface;
@@ -609,7 +609,7 @@ class OrinneApp(App):
 
 
 def main():
-    app = OrinneApp()
+    app = OpenCLIApp()
     app.run()
 
 

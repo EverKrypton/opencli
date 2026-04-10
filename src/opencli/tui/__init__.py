@@ -1,5 +1,5 @@
 """TUI module for OPENCLI."""
 
-from .app import OrinneApp, MainScreen
+from .app import OpenCLIApp, MainScreen
 
-__all__ = ["OrinneApp", "MainScreen"]
+__all__ = ["OpenCLIApp", "MainScreen"]
