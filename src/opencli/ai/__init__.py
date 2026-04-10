@@ -1,5 +1,5 @@
 """AI module for OPENCLI."""
 
-from .client import AIClient, Message, ChatResponse
+from .client import AIClient, StreamChunk
 
-__all__ = ["AIClient", "Message", "ChatResponse"]
+__all__ = ["AIClient", "StreamChunk"]
