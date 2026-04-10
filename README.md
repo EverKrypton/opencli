@@ -60,17 +60,25 @@ pip install -e .
 opencli
 ```
 
+### Quick Start
+
+1. Run `opencli`
+2. Type `/login` and paste your API key (provider is auto-detected)
+3. Start chatting!
+
 ### Slash Commands
 
 | Command | Description |
 |---------|-------------|
-| `/help` | Show available commands |
-| `/login <key>` | Set API key |
+| `/login [key]` | Login with API key (interactive or provide key) |
+| `/logout` | Clear saved credentials |
 | `/models` | List available models |
-| `/settings` | View configuration |
+| `/model <name>` | Switch to a different model |
+| `/settings` | View current configuration |
 | `/clear` | Clear conversation |
-| `/sessions` | List saved sessions |
 | `/new` | Start new session |
+| `/help` | Show all commands |
+| `/exit` | Quit OPENCLI |
 
 ### Keyboard Shortcuts
 
