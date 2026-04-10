@@ -1,4 +1,4 @@
-# ORINNE Project
+# OPENCLI Project
 
 AI-powered CLI agent with full-screen TUI for Termux and Linux.
 
@@ -9,16 +9,16 @@ AI-powered CLI agent with full-screen TUI for Termux and Linux.
 pip install -e .
 
 # Run
-orinne
+opencli
 
 # Run from source
-PYTHONPATH=src python3 -m orinne
+PYTHONPATH=src python3 -m opencli
 ```
 
 ## Project Structure
 
 ```
-src/orinne/
+src/opencli/
 ├── __main__.py    # Entry point
 ├── tui/app.py     # Main TUI application
 ├── ai/client.py   # AI client with tools

@@ -1,11 +1,11 @@
-"""ORINNE entry point."""
+"""OPENCLI entry point."""
 
 import sys
-from orinne.tui.app import OrinneApp
+from opencli.tui.app import OrinneApp
 
 
 def main():
-    """Main entry point for ORINNE."""
+    """Main entry point for OPENCLI."""
     app = OrinneApp()
     try:
         app.run()

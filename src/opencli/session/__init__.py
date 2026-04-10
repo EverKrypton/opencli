@@ -1,4 +1,4 @@
-"""Session management for ORINNE."""
+"""Session management for OPENCLI."""
 
 import os
 import json
@@ -79,9 +79,9 @@ class SessionManager:
         if session_dir:
             self.session_dir = Path(session_dir)
         elif os.environ.get("TERMUX_VERSION"):
-            self.session_dir = Path.home() / ".orinne" / "sessions"
+            self.session_dir = Path.home() / ".opencli" / "sessions"
         else:
-            self.session_dir = Path.home() / ".local" / "share" / "orinne" / "sessions"
+            self.session_dir = Path.home() / ".local" / "share" / "opencli" / "sessions"
         
         self.session_dir.mkdir(parents=True, exist_ok=True)
         self.current_session: Optional[Session] = None

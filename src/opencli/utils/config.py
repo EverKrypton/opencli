@@ -1,4 +1,4 @@
-"""Configuration management for ORINNE."""
+"""Configuration management for OPENCLI."""
 
 import os
 from pathlib import Path
@@ -33,11 +33,11 @@ class Config:
     @classmethod
     def get_config_path(cls) -> Path:
         if "TERMUX_VERSION" in os.environ:
-            return Path.home() / ".orinne" / "config.json"
+            return Path.home() / ".opencli" / "config.json"
         xdg_config = os.environ.get("XDG_CONFIG_HOME", "")
         if xdg_config:
-            return Path(xdg_config) / "orinne" / "config.json"
-        return Path.home() / ".config" / "orinne" / "config.json"
+            return Path(xdg_config) / "opencli" / "config.json"
+        return Path.home() / ".config" / "opencli" / "config.json"
     
     @classmethod
     def load(cls) -> "Config":
@@ -56,11 +56,11 @@ class Config:
             except (json.JSONDecodeError, TypeError):
                 pass
         
-        env_api_key = os.environ.get("ORINNE_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        env_api_key = os.environ.get("OPENCLI_API_KEY") or os.environ.get("OPENAI_API_KEY")
         if env_api_key:
             config.ai.api_key = env_api_key
         
-        env_base_url = os.environ.get("ORINNE_BASE_URL")
+        env_base_url = os.environ.get("OPENCLI_BASE_URL")
         if env_base_url:
             config.ai.base_url = env_base_url
         

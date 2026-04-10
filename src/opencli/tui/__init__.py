@@ -1,4 +1,4 @@
-"""TUI module for ORINNE."""
+"""TUI module for OPENCLI."""
 
 from .app import OrinneApp, MainScreen
 

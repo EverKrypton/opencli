@@ -1,4 +1,4 @@
-"""Main TUI application for ORINNE."""
+"""Main TUI application for OPENCLI."""
 
 import os
 import asyncio
@@ -14,12 +14,12 @@ from rich.text import Text
 from rich.console import Console
 from rich.panel import Panel
 
-from orinne.utils.config import Config
-from orinne.utils.permissions import PermissionManager, is_dangerous_command, is_sensitive_path
-from orinne.tools import ToolsRegistry
-from orinne.providers import detect_provider, get_provider_config, fetch_models, PROVIDERS
-from orinne.session import SessionManager
-from orinne.ai.client import AIClient
+from opencli.utils.config import Config
+from opencli.utils.permissions import PermissionManager, is_dangerous_command, is_sensitive_path
+from opencli.tools import ToolsRegistry
+from opencli.providers import detect_provider, get_provider_config, fetch_models, PROVIDERS
+from opencli.session import SessionManager
+from opencli.ai.client import AIClient
 
 
 console = Console()
@@ -144,7 +144,7 @@ class LoginDialog(ModalScreen):
     
     def compose(self) -> ComposeResult:
         with Container():
-            yield Static("🔐 Login to ORINNE", classes="title")
+            yield Static("🔐 Login to OPENCLI", classes="title")
             yield Static("")
             yield Static("Paste your API key below.")
             yield Static("Provider will be auto-detected:")
@@ -288,7 +288,7 @@ class MainScreen(Screen):
     async def _setup_client(self):
         api_key = (
             self.config.ai.api_key or
-            os.environ.get("ORINNE_API_KEY") or
+            os.environ.get("OPENCLI_API_KEY") or
             os.environ.get("OPENAI_API_KEY")
         )
         
@@ -332,29 +332,29 @@ class MainScreen(Screen):
         logged_text = f"{provider} · {model}" if self.status.logged_in else "/login to start"
         
         banner = f"""
-  
-  ┌─────────────────────────────────────────────────────────────┐
-  │                                                             │
-  │     ██████╗ ██████╗ ██╗██████╗ ██████╗ ██████╗ ██╗███╗   ██╗│
-  │     ██╔═══██╗██╔══██╗██║██╔══██╗██╔══██╗██╔══██╗██║████╗  ██║│
-  │     ██║   ██║██████╔╝██║██║  ██║██████╔╝██████╔╝██║██╔██╗ ██║│
-  │     ██║   ██║██╔═══╝ ██║██║  ██║██╔═══╝ ██╔═══╝ ██║██║╚██╗██║│
-  │     ╚██████╔╝██║     ██║██████╔╝██║     ██║     ██║██║ ╚████║│
-  │      ╚═════╝ ╚═╝     ╚═╝╚═════╝ ╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝│
-  │                                                             │
-  │           AI-powered CLI agent for Terminal                 │
-  └─────────────────────────────────────────────────────────────┘
-  
-     {logged_icon} {logged_text}
-  
+
+  ╔═══════════════════════════════════════════════════════════════╗
+  ║                                                               ║
+  ║   ██████╗ ██████╗ ███████╗ █████╗ ███╗   ███╗                ║
+  ║  ██╔═══██╗██╔══██╗██╔════╝██╔══██╗████╗ ████║                ║
+  ║  ██║   ██║██████╔╝█████╗  ███████║██╔████╔██║                ║
+  ║  ██║   ██║██╔═══╝ ██╔══╝  ██╔══██║██║╚██╔╝██║                ║
+  ║  ╚██████╔╝██║     ███████╗██║  ██║██║ ╚═╝ ██║                ║
+  ║   ╚═════╝ ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝                ║
+  ║                                                               ║
+  ║            AI-powered CLI agent for Terminal                  ║
+  ╚═══════════════════════════════════════════════════════════════╝
+
+   {logged_icon} {logged_text}
+
    ─────────────────────────────────────────────────────────────
-  
+
     /login [key]     Configure API key
     /models          List models  ·  /model <name>  Switch model
     /clear           Clear chat   ·  /new           New session
     /help            Show all commands
     /exit            Quit
-  
+
 """
         self.chat.add("system", banner)
     
@@ -501,7 +501,7 @@ Settings:
   Temperature: {self.config.ai.temperature}
   Max Tokens:  {self.config.ai.max_tokens}
   
-Config file: ~/.orinne/config.json
+Config file: ~/.opencli/config.json
         """
         self.chat.add("system", settings)
     
@@ -516,7 +516,7 @@ Commands:
   /new             Start a new session
   /settings        Show current settings
   /help            Show this help
-  /exit            Quit ORINNE
+  /exit            Quit OPENCLI
 
 Keyboard Shortcuts:
   Ctrl+L           Clear screen

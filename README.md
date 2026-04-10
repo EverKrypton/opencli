@@ -1,4 +1,4 @@
-# ORINNE
+# OPENCLI
 
 AI-powered CLI agent with full-screen TUI for Termux and Linux.
 
@@ -17,23 +17,23 @@ AI-powered CLI agent with full-screen TUI for Termux and Linux.
 ### Termux (Android)
 ```bash
 pkg install python git
-curl -sSL https://raw.githubusercontent.com/EverKrypton/orinne/main/install-termux.sh | bash
+curl -sSL https://raw.githubusercontent.com/EverKrypton/opencli/main/install-termux.sh | bash
 ```
 
 ### Linux / macOS
 ```bash
-pip3 install git+https://github.com/EverKrypton/orinne.git
+pip3 install git+https://github.com/EverKrypton/opencli.git
 ```
 
 ## Usage
 
 ```bash
-orinne
+opencli
 ```
 
 ### Quick Start
 
-1. Run `orinne`
+1. Run `opencli`
 2. Type `/login` and paste your API key (provider is auto-detected)
 3. Start chatting!
 
@@ -65,12 +65,12 @@ orinne
 
 ### Environment Variables
 ```bash
-export ORINNE_API_KEY="your-api-key"
-export ORINNE_BASE_URL="https://api.openai.com/v1"
+export OPENCLI_API_KEY="your-api-key"
+export OPENCLI_BASE_URL="https://api.openai.com/v1"
 ```
 
 ### Config File
-`~/.orinne/config.json`
+`~/.opencli/config.json`
 
 ## Requirements
 
